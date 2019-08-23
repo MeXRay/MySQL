@@ -92,3 +92,19 @@ where
     and
     (e.Salary,e.DepartmentId) in (select max(Salary),DepartmentId from Employee group by DepartmentId);
 ```
+#  删除重复的电子邮箱
+> distinct无法让没distinct的自动求交集，所以不用distinct，用group by,但是出错，因为要的是“删除”，他这是在清理数据库的表要用delete
+```mysql
+select *
+from Person
+where Id in 
+(select Id
+from Person
+group by Email)
+```
+···mysql
+正解：等值连接加排除最小的同邮箱ID
+delete p1
+from Person p1 ,Person p2
+where p1.Email = p2.Email and p1.Id>p2.Id
+```
