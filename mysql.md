@@ -108,3 +108,10 @@ delete p1
 from Person p1 ,Person p2
 where p1.Email = p2.Email and p1.Id>p2.Id
 ```
+# 日期比较函数用datediff(a,b)=1,既是a-b=1
+# update把female和male互换
+``` mysql
+类似条件判断表达式，我总在想先把一个性别改成另一个性别，这样必须多次update，不合适
+update salary
+set sex = if(sex = 'm','f','m')
+```
