@@ -102,7 +102,7 @@ where Id in
 from Person
 group by Email)
 ```
-···mysql
+```mysql
 正解：等值连接加排除最小的同邮箱ID
 delete p1
 from Person p1 ,Person p2
