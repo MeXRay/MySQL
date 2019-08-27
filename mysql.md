@@ -115,3 +115,48 @@ where p1.Email = p2.Email and p1.Id>p2.Id
 update salary
 set sex = if(sex = 'm','f','m')
 ```
+# 体育馆连续3天人流量超过100，把那几天都输出（之前遇到类似的题是找出连续3次出现的id,可能存在重复，所以要加distinct）
+> 因为有3种情况的要输出，后两天，前后一天和前两天的，所以我想要以一个表为基础去连接其他6个表，把天数连在同一行
+```mysql
+正解：思路和我一样，只是3个表就够了，要想凑在同一行其实不需要再另外4个表
+select distinct(s1.id),s1.visit_date,s1.people
+from stadium s1,stadium s2,stadium s3
+where s1.people>=100 and s2.people>=100 and s3.people>=100
+and 
+(
+(s2.id =s1.id+1 and s3.id=s1.id+2)or
+(s2.id =s1.id+1 and s3.id=s1.id-1)or
+(s2.id =s1.id-1 and s3.id=s1.id-2)
+)order by s1.id
+```
+
+# 求出某几天的出租车下单拒绝率
+> 我的思路是找出总的下单数，再找出其中的拒绝数，谁都知道；可是在获得的过程临时表不能复用，一直在建表，和杂乱，最后还语法错误
+```mysql
+我的错误
+select res1.Request_at Day,res2.cancel/res1.total  Cancellation Rate
+from
+(select t.total,t.Request_at
+from
+(select t.Request_at,count(*) total
+from Trips t,Users u
+where t.Id = u.UserId and u.Banned = 'No'
+and t.Request_at between '2013-10-01' and '2013-10-03')t
+group by t.Request_at)res1
+,
+select t2.cancel
+from
+(select t.Status,count(*) cancel
+from Trips t,Users u
+where t.Id = u.Users_Id and u.Banned = 'No'
+and t.Request_at between '2013-10-01' and '2013-10-03')t2
+where t2.Status != 1
+group by t2.Request_at)res2
+(select t.total,t.Request_at
+from
+(select t.Request_at,count(*) total
+from Trips t,Users u
+where t.Id = u.Users_Id and u.Banned = 'No'
+and t.Request_at between '2013-10-01' and '2013-10-03')t
+group by t.Request_at)res1
+```
