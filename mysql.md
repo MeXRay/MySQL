@@ -117,7 +117,7 @@ set sex = if(sex = 'm','f','m')
 ```
 # 体育馆连续3天人流量超过100，把那几天都输出（之前遇到类似的题是找出连续3次出现的id,可能存在重复，所以要加distinct）
 > 因为有3种情况的要输出，后两天，前后一天和前两天的，所以我想要以一个表为基础去连接其他6个表，把天数连在同一行
-```mysql
+```mysql 30分钟
 正解：思路和我一样，只是3个表就够了，要想凑在同一行其实不需要再另外4个表
 select distinct(s1.id),s1.visit_date,s1.people
 from stadium s1,stadium s2,stadium s3
@@ -130,7 +130,7 @@ and
 )order by s1.id
 ```
 
-# 求出某几天的出租车下单拒绝率
+# 求出某几天的出租车下单拒绝率（1小时20分钟）
 > 我的思路是找出总的下单数，再找出其中的拒绝数，谁都知道；可是在获得的过程临时表不能复用，一直在建表，和杂乱，最后还语法错误
 ```mysql
 我的错误 改了35分钟能跑，
@@ -154,7 +154,7 @@ where t2.Status != 1
 group by t2.Request_at)res2
 ```
 ```mysql
-正解是能在分组的情况下，同时做两种计数，还用到了四舍五入和if函数
+正解是能在分组的情况下，同时做两种计数，还用到了四舍五入和if函数 
 select
     t.request_at Day, 
     (
@@ -172,4 +172,22 @@ and
     t.Request_at <= '2013-10-03'
 group by
     t.Request_at
-    ```
+```
+# 求每个部门薪资前三的员工
+> 我的思路：max函数只能一次求一个，如果没有top函数，估计要排名，取前三，好复杂（排名我可以用order by,那这样问题在于group by只能取一个，不能像limit 那样）如果没有group by 还能limit我做不到啊
+> 正解的思路：当前表能出现在where语句中（不是表的连接，是字段的应用！），然后where语句是计算比当前表工资高的数量，where语句外是，当数量小于等于3就是前3名！用计数来排名啊
+```mysql
+select d.Name Department,e1.Name Employee,e1.Salary 
+from Employee e1
+join Department d on e1.DepartmentId = d.Id
+where
+(
+    select count(distinct Salary)
+    from Employee e2
+    where e2.DepartmentId = e1.DepartmentId    同部门比较
+    and e1.Salary <= e2.Salary     e1字段引用
+   
+)<=3
+order by Department,Salary desc
+	
+```
