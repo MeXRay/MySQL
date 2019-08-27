@@ -133,30 +133,43 @@ and
 # 求出某几天的出租车下单拒绝率
 > 我的思路是找出总的下单数，再找出其中的拒绝数，谁都知道；可是在获得的过程临时表不能复用，一直在建表，和杂乱，最后还语法错误
 ```mysql
-我的错误
-select res1.Request_at Day,res2.cancel/res1.total  Cancellation Rate
+我的错误 改了35分钟能跑，
+select res1.Request_at Day,res2.cancel/res1.total  Cancellation_Rate
 from
 (select t.total,t.Request_at
 from
 (select t.Request_at,count(*) total
 from Trips t,Users u
-where t.Id = u.UserId and u.Banned = 'No'
+where t.Id = u.Users_Id and u.Banned = 'No'
 and t.Request_at between '2013-10-01' and '2013-10-03')t
 group by t.Request_at)res1
 ,
-select t2.cancel
+(select t2.cancel
 from
-(select t.Status,count(*) cancel
+(select t.Status,count(*) cancel,t.Request_at
 from Trips t,Users u
 where t.Id = u.Users_Id and u.Banned = 'No'
 and t.Request_at between '2013-10-01' and '2013-10-03')t2
 where t2.Status != 1
 group by t2.Request_at)res2
-(select t.total,t.Request_at
-from
-(select t.Request_at,count(*) total
-from Trips t,Users u
-where t.Id = u.Users_Id and u.Banned = 'No'
-and t.Request_at between '2013-10-01' and '2013-10-03')t
-group by t.Request_at)res1
 ```
+```mysql
+正解是能在分组的情况下，同时做两种计数，还用到了四舍五入和if函数
+select
+    t.request_at Day, 
+    (
+        round(count(if(status != 'completed', status, null)) / count(status), 2)
+    ) as 'Cancellation Rate'
+from
+    Users u inner join Trips t
+on
+    u.Users_id = t.Client_Id
+and
+    u.banned != 'Yes'
+where
+    t.Request_at >= '2013-10-01'
+and
+    t.Request_at <= '2013-10-03'
+group by
+    t.Request_at
+    ```
